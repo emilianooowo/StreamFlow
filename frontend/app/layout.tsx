@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import { Outfit } from 'next/font/google';
 import './globals.css';
+
+const outfit = Outfit({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'StreamFlow - AI Video Anthology Streaming',
@@ -16,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="antialiased">
+      <body className={`${outfit.className} antialiased`}>
         {children}
       </body>
     </html>

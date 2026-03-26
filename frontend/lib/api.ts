@@ -84,5 +84,6 @@ export const apiEndpoints = {
     logout: '/v1/auth/logout',
     me: '/v1/auth/me',
     login: '/v1/auth/login',
+    register: '/v1/auth/register',
   },
 };

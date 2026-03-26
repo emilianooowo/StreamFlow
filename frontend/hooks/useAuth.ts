@@ -39,6 +39,11 @@ export function useAuth() {
     await checkAuth();
   };
 
+  const registerWithEmail = async (name: string, email: string, password: string) => {
+    await api.post(apiEndpoints.auth.register, { name, email, password });
+    await checkAuth();
+  };
+
 
   const logout = async () => {
     try {
@@ -54,6 +59,7 @@ export function useAuth() {
     ...state,
     login,
     loginWithEmail,
+    registerWithEmail,
     logout,
     checkAuth,
   };

@@ -6,8 +6,10 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading, login, loginWithEmail } = useAuth();
+  const { isAuthenticated, isLoading, login, loginWithEmail, registerWithEmail } = useAuth();
 
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,21 +25,29 @@ export default function LoginPage() {
     login();
   };
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password || (isRegistering && !name)) return;
     
     setIsSubmitting(true);
     setError('');
     
     try {
-      if (loginWithEmail) {
-        await loginWithEmail(email, password);
+      if (isRegistering) {
+        if (registerWithEmail) {
+          await registerWithEmail(name, email, password);
+        } else {
+          setError('El registro con correo no está configurado');
+        }
       } else {
-        setError('El inicio de sesión con correo no está configurado');
+        if (loginWithEmail) {
+          await loginWithEmail(email, password);
+        } else {
+          setError('El inicio de sesión con correo no está configurado');
+        }
       }
     } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión');
+      setError(err.message || (isRegistering ? 'Error al registrarse' : 'Error al iniciar sesión'));
     } finally {
       setIsSubmitting(false);
     }
@@ -45,7 +55,7 @@ export default function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center gradient-radial-primary bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse text-primary text-lg">Cargando...</div>
       </div>
     );
@@ -57,24 +67,36 @@ export default function LoginPage() {
       <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
       <div className="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] bg-secondary/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
 
-      <div className="glass-surface rounded-2xl p-8 md:p-12 max-w-md w-full mx-4 relative z-10 border border-white/5 shadow-2xl">
+      <div className="glass-surface rounded-3xl p-8 md:p-12 max-w-md w-full mx-4 relative z-10 border border-white/5 shadow-2xl animate-fade-in-up">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <h1 className="text-4xl font-extrabold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             StreamFlow
           </h1>
           <p className="text-text-secondary text-sm">
-            Tu plataforma de streaming, tu control
+            {isRegistering ? 'Crea cuenta para continuar' : 'Tu plataforma de streaming, tu control'}
           </p>
         </div>
 
         <div className="space-y-6">
           {error && (
-            <div className="p-3 text-sm text-red-400 bg-red-900/20 border border-red-500/20 rounded-lg text-center">
+            <div className="p-3 text-sm text-red-100 bg-red-900/40 border border-red-500/20 rounded-lg text-center backdrop-blur-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleEmailLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isRegistering && (
+              <div className="animate-fade-in">
+                <input
+                  type="text"
+                  placeholder="Nombre completo"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="input"
+                  required={isRegistering}
+                />
+              </div>
+            )}
             <div>
               <input
                 type="email"
@@ -98,18 +120,28 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full btn-primary text-white flex justify-center items-center py-3"
+              className="w-full btn-primary text-white flex justify-center items-center py-3 shadow-lg mt-2"
             >
-              {isSubmitting ? 'Iniciando...' : 'Iniciar sesión'}
+              {isSubmitting ? 'Procesando...' : (isRegistering ? 'Crear cuenta' : 'Iniciar sesión')}
             </button>
           </form>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
+          <div className="text-center mt-4">
+            <button 
+              type="button" 
+              onClick={() => setIsRegistering(!isRegistering)}
+              className="text-sm font-medium text-text-secondary hover:text-white transition-colors"
+            >
+              {isRegistering ? '¿Ya tienes una cuenta? Iniciar sesión' : '¿Eres nuevo? Regístrate aquí'}
+            </button>
+          </div>
+
+          <div className="relative pt-4">
+            <div className="absolute inset-0 flex flex-col justify-center">
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 text-text-secondary glass-surface rounded-full py-1 text-xs">
+              <span className="px-4 text-text-secondary bg-surface/80 backdrop-blur-md rounded-full py-1 text-xs">
                 O continuar con
               </span>
             </div>
@@ -118,7 +150,7 @@ export default function LoginPage() {
           <button
             onClick={handleGoogleLogin}
             type="button"
-            className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-lg font-medium transition-all duration-200 bg-white text-gray-900 hover:bg-gray-100 hover:scale-[1.02] shadow-lg"
+            className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-medium transition-all duration-300 bg-white text-gray-900 hover:bg-gray-200 hover:scale-[1.02] shadow-[0_4px_14px_0_rgba(255,255,255,0.2)]"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -140,10 +172,6 @@ export default function LoginPage() {
             </svg>
             Google
           </button>
-
-          <p className="text-center text-text-secondary text-xs pt-4">
-            Al iniciar sesión, aceptas nuestros términos de servicio y política de privacidad.
-          </p>
         </div>
       </div>
     </div>
