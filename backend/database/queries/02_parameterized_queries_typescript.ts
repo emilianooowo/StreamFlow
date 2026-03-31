@@ -28,8 +28,8 @@ const client = new Client({
 await client.connect();
 
 // ============================================================================
-// EJEMPLO 1: Buscar usuario por email (SEGURO) ✅
-// ============================================================================
+// EJEMPLO 1: Buscar usuario por email (SEGURO)
+// ==============================================================================
 
 async function getUserByEmail(email: string) {
   const result = await client.queryObject({
@@ -50,8 +50,8 @@ async function getUserByEmail(email: string) {
 // console.log(user);
 
 // ============================================================================
-// EJEMPLO 2: Buscar usuarios por rol (SEGURO) ✅
-// ============================================================================
+// EJEMPLO 2: Buscar usuarios por rol (SEGURO)
+// ==============================================================================
 
 async function getUsersByRole(role: string) {
   const result = await client.queryObject({
@@ -73,8 +73,8 @@ async function getUsersByRole(role: string) {
 // console.log(admins);
 
 // ============================================================================
-// EJEMPLO 3: Crear nuevo usuario (SEGURO) ✅
-// ============================================================================
+// EJEMPLO 3: Crear nuevo usuario (SEGURO)
+// ==============================================================================
 
 interface CreateUserParams {
   googleId: string;
@@ -113,8 +113,8 @@ async function createUser(params: CreateUserParams) {
 // });
 
 // ============================================================================
-// EJEMPLO 4: Actualizar usuario (SEGURO) ✅
-// ============================================================================
+// EJEMPLO 4: Actualizar usuario (SEGURO)
+// ==============================================================================
 
 interface UpdateUserParams {
   userId: string;
@@ -172,8 +172,8 @@ async function updateUser(params: UpdateUserParams) {
 // });
 
 // ============================================================================
-// EJEMPLO 5: Buscar videos por categoría con paginación (SEGURO) ✅
-// ============================================================================
+// EJEMPLO 5: Buscar videos por categoría con paginación (SEGURO)
+// ==============================================================================
 
 interface GetVideosByCategoryParams {
   categoryId: string;
@@ -211,8 +211,8 @@ async function getVideosByCategory(params: GetVideosByCategoryParams) {
 // });
 
 // ============================================================================
-// EJEMPLO 6: Búsqueda de videos por título (SEGURO) ✅
-// ============================================================================
+// EJEMPLO 6: Búsqueda de videos por título (SEGURO)
+// ==============================================================================
 
 async function searchVideosByTitle(searchTerm: string, limit = 20) {
   const result = await client.queryObject({
@@ -234,8 +234,8 @@ async function searchVideosByTitle(searchTerm: string, limit = 20) {
 // const results = await searchVideosByTitle('Algorithm');
 
 // ============================================================================
-// EJEMPLO 7: Obtener detalles completos de un video (SEGURO) ✅
-// ============================================================================
+// EJEMPLO 7: Obtener detalles completos de un video (SEGURO)
+// ==============================================================================
 
 async function getVideoDetails(videoId: string) {
   const result = await client.queryObject({
@@ -261,8 +261,8 @@ async function getVideoDetails(videoId: string) {
 // const video = await getVideoDetails('uuid-del-video');
 
 // ============================================================================
-// EJEMPLO 8: Insertar video con transacción (SEGURO) ✅
-// ============================================================================
+// EJEMPLO 8: Insertar video con transacción (SEGURO)
+// ==============================================================================
 
 interface CreateVideoParams {
   title: string;
@@ -320,8 +320,8 @@ async function createVideo(params: CreateVideoParams) {
 // });
 
 // ============================================================================
-// EJEMPLO 9: Búsqueda avanzada con múltiples filtros opcionales (SEGURO) ✅
-// ============================================================================
+// EJEMPLO 9: Búsqueda avanzada con múltiples filtros opcionales (SEGURO)
+// ==============================================================================
 
 interface AdvancedSearchParams {
   searchTerm?: string;
@@ -389,8 +389,8 @@ async function advancedVideoSearch(params: AdvancedSearchParams) {
 // });
 
 // ============================================================================
-// EJEMPLO 10: Consultar logs de auditoría (SEGURO) ✅
-// ============================================================================
+// EJEMPLO 10: Consultar logs de auditoría (SEGURO)
+// ==============================================================================
 
 interface GetAuditLogsParams {
   tableName?: string;
@@ -467,10 +467,10 @@ async function getAuditLogs(params: GetAuditLogsParams) {
 // });
 
 // ============================================================================
-// EJEMPLO DE CONSULTA INSEGURA (NUNCA HACER ESTO) ❌
-// ============================================================================
+// EJEMPLO DE CONSULTA INSEGURA (NUNCA HACER ESTO)
+// ==============================================================================
 
-// ❌ MAL - Vulnerable a SQL Injection
+// MAL - Vulnerable a SQL Injection
 async function INSECURE_getUserByEmail_BAD(email: string) {
   // NUNCA HACER ESTO:
   const result = await client.queryObject(
@@ -480,7 +480,7 @@ async function INSECURE_getUserByEmail_BAD(email: string) {
   return result.rows;
 }
 
-// ✅ BIEN - Usando parámetros
+// BIEN - Usando parámetros
 async function SECURE_getUserByEmail_GOOD(email: string) {
   const result = await client.queryObject({
     text: `SELECT * FROM users WHERE email = $1`,
@@ -553,14 +553,14 @@ async function updateVideoWithContext(
 /**
  * REGLAS DE SEGURIDAD:
  *
- * 1. ✅ SIEMPRE usar parámetros ($1, $2, etc.) para valores dinámicos
- * 2. ❌ NUNCA concatenar strings directamente en las queries
- * 3. ✅ Validar y sanitizar inputs antes de usarlos
- * 4. ✅ Usar transacciones para operaciones que modifican múltiples tablas
- * 5. ✅ Establecer contexto de usuario para triggers de auditoría
- * 6. ✅ Manejar errores apropiadamente y hacer rollback en transacciones
- * 7. ✅ Usar TypeScript para type safety
- * 8. ✅ Limitar resultados con LIMIT para prevenir queries costosas
+ * 1. SIEMPRE usar parámetros ($1, $2, etc.) para valores dinámicos
+ * 2. NUNCA concatenar strings directamente en las queries
+ * 3. Validar y sanitizar inputs antes de usarlos
+ * 4. Usar transacciones para operaciones que modifican múltiples tablas
+ * 5. Establecer contexto de usuario para triggers de auditoría
+ * 6. Manejar errores apropiadamente y hacer rollback en transacciones
+ * 7. Usar TypeScript para type safety
+ * 8. Limitar resultados con LIMIT para prevenir queries costosas
  */
 
 export {
