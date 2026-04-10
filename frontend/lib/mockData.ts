@@ -9,7 +9,7 @@ export const mockToken = 'mock-jwt-token-for-development';
 export function createMockUser(name: string, email: string): User {
   return {
     id: `mock-${Date.now()}`,
-    google_id: null,
+    google_id: '',
     email,
     name,
     avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`,
