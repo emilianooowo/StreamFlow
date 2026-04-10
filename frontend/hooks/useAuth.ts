@@ -11,6 +11,9 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
+// Mock password storage (development only)
+const MOCK_PASSWORD_KEY = 'mock_password';
+
 export function useAuth() {
   const [state, setState] = useState<AuthState>({
     user: null,
@@ -71,9 +74,19 @@ export function useAuth() {
     // Mock login (simula delay de red)
     await new Promise(resolve => setTimeout(resolve, 500));
     
+    // Validar que password no esté vacío
+    if (!password || password.length < 1) {
+      throw new Error('La contraseña es requerida');
+    }
+    
     // Buscar si el usuario ya existe en localStorage
     const existingUser = getMockUser();
     if (existingUser && existingUser.email === email) {
+      // Verificar que la contraseña coincida
+      const storedPassword = localStorage.getItem(MOCK_PASSWORD_KEY);
+      if (storedPassword && storedPassword !== password) {
+        throw new Error('Contraseña incorrecta');
+      }
       setState({ user: existingUser, isLoading: false, isAuthenticated: true });
     } else {
       throw new Error('Usuario no encontrado. Por favor regístrate primero.');
@@ -95,9 +108,16 @@ export function useAuth() {
     // Mock register (simula delay de red)
     await new Promise(resolve => setTimeout(resolve, 500));
     
+    // Validar password
+    if (!password || password.length < 6) {
+      throw new Error('La contraseña debe tener al menos 6 caracteres');
+    }
+    
     // Crear nuevo usuario con los datos proporcionados
     const newUser = createMockUser(name, email);
     saveMockUser(newUser);
+    // Guardar password para login posterior
+    localStorage.setItem(MOCK_PASSWORD_KEY, password);
     setState({ user: newUser, isLoading: false, isAuthenticated: true });
   };
 
@@ -111,6 +131,7 @@ export function useAuth() {
     // }
     
     clearMockAuth();
+    localStorage.removeItem(MOCK_PASSWORD_KEY);
     setState({ user: null, isLoading: false, isAuthenticated: false });
   };
 
