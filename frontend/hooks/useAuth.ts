@@ -109,8 +109,8 @@ export function useAuth() {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     // Validar password
-    if (!password || password.length < 6) {
-      throw new Error('La contraseña debe tener al menos 6 caracteres');
+    if (!password || password.length < 8) {
+      throw new Error('La contraseña debe tener al menos 8 caracteres');
     }
     
     // Crear nuevo usuario con los datos proporcionados
@@ -144,3 +144,4 @@ export function useAuth() {
     checkAuth,
   };
 }
+
