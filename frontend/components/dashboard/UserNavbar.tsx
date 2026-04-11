@@ -83,13 +83,13 @@ export function UserNavbar() {
               {user && (
                 <>
                   <div className="hidden sm:block text-right">
-                    <p className="text-sm font-medium text-text-primary">{user.name}</p>
+                    <p className="text-sm font-medium text-text-primary">{user.name || 'Usuario'}</p>
                     <p className="text-xs text-text-secondary">{user.role === 'admin' ? 'Admin' : 'Usuario'}</p>
                   </div>
                   <div className="relative group">
                     <img
-                      src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`}
-                      alt={user.name}
+                      src={user.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name || 'user')}`}
+                      alt={user.name || 'User'}
                       className="w-9 h-9 rounded-full border-2 border-primary/50 group-hover:border-primary transition-colors cursor-pointer"
                     />
                     {/* Dropdown (básico, sin funcionalidad) */}

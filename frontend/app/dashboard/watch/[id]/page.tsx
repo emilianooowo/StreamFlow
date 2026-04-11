@@ -38,22 +38,16 @@ export default function WatchPage() {
     async function fetchVideo() {
       try {
         setLoading(true);
-        // ## Mock temporal - descomentar cuando el backend esté listo
-        // const videoId = params.id as string;
-        // const token = localStorage.getItem('auth_token') || '';
-        // 
-        // const [videoData, catalogData] = await Promise.all([
-        //   apiClient.get<Video>(apiEndpoints.catalogById(videoId), token),
-        //   apiClient.get<CatalogResponse>(apiEndpoints.catalog, token, { params: { page_size: 4 }}),
-        // ]);
-        // 
-        // setVideo(videoData);
-        // setRelatedVideos(catalogData.videos.filter((v) => v.id !== videoId));
+        const videoId = params.id as string;
+        const token = localStorage.getItem('auth_token') || '';
         
-        // Mock data temporal
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setVideo(null); // Por ahora no hay videos en el mock
-        setRelatedVideos([]);
+        const [videoData, catalogData] = await Promise.all([
+          apiClient.get<Video>(apiEndpoints.catalogById(videoId), token),
+          apiClient.get<CatalogResponse>(apiEndpoints.catalog, token, { params: { page_size: 4 }}),
+        ]);
+        
+        setVideo(videoData);
+        setRelatedVideos(catalogData.videos.filter((v) => v.id !== videoId));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error al cargar el video');
       } finally {
@@ -145,7 +139,7 @@ export default function WatchPage() {
             )}
             {video.category && (
               <span className="px-2 py-1 rounded bg-primary/20 text-primary">
-                {video.category.name}
+                {video.category?.name}
               </span>
             )}
             <span>

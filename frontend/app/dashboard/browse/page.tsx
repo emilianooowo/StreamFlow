@@ -27,22 +27,17 @@ export default function BrowsePage() {
     async function fetchData() {
       try {
         setLoading(true);
-        // ## Mock temporal - descomentar cuando el backend esté listo
-        // const [catalogData, categoriesData] = await Promise.all([
-        //   apiClient.get<CatalogResponse>(apiEndpoints.catalog, '', { params: { 
-        //     page: 1, 
-        //     page_size: 20,
-        //     category: selectedCategory || undefined 
-        //   }}),
-        //   apiClient.get<Category[]>(apiEndpoints.categories, ''),
-        // ]);
-        // setVideos(catalogData.videos);
-        // setCategories(categoriesData);
-        
-        // Mock data temporal
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setVideos([]);
-        setCategories([]);
+        const token = localStorage.getItem('auth_token') || '';
+        const [catalogData, categoriesData] = await Promise.all([
+          apiClient.get<CatalogResponse>(apiEndpoints.catalog, token, { params: { 
+            page: 1, 
+            page_size: 20,
+            category: selectedCategory || undefined 
+          }}),
+          apiClient.get<Category[]>(apiEndpoints.categories, token),
+        ]);
+        setVideos(catalogData.videos);
+        setCategories(categoriesData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error al cargar el catálogo');
       } finally {

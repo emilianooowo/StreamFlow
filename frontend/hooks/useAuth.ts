@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/lib/api';
-import { createMockUser, saveMockUser, getMockUser, clearMockAuth, mockToken, isMockAuth } from '@/lib/mockData';
 import type { User } from '@/types';
 
 interface AuthState {
@@ -11,8 +10,7 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-// Mock password storage (development only)
-const MOCK_PASSWORD_KEY = 'mock_password';
+
 
 export function useAuth() {
   const [state, setState] = useState<AuthState>({
@@ -27,28 +25,14 @@ export function useAuth() {
       setState({ user: null, isLoading: false, isAuthenticated: false });
       return;
     }
-    
-    // ## Si estamos usando mock, cargar usuario mock de localStorage
-    if (isMockAuth()) {
-      const user = getMockUser();
-      if (user) {
-        setState({ user, isLoading: false, isAuthenticated: true });
-      } else {
-        // Si no hay usuario, limpiar y cerrar sesión
-        clearMockAuth();
-        setState({ user: null, isLoading: false, isAuthenticated: false });
-      }
-      return;
-    }
 
-    // ## Descomentar cuando el backend esté listo
-    // try {
-    //   const user = await apiClient.get<User>('/v1/auth/me', token);
-    //   setState({ user, isLoading: false, isAuthenticated: true });
-    // } catch {
-    //   localStorage.removeItem('auth_token');
-    //   setState({ user: null, isLoading: false, isAuthenticated: false });
-    // }
+    try {
+      const user = await apiClient.get<User>('/v1/auth/me', token);
+      setState({ user, isLoading: false, isAuthenticated: true });
+    } catch {
+      localStorage.removeItem('auth_token');
+      setState({ user: null, isLoading: false, isAuthenticated: false });
+    }
   }, []);
 
   useEffect(() => {
@@ -60,78 +44,38 @@ export function useAuth() {
   };
 
   const loginWithEmail = async (email: string, password: string) => {
-    // ## Mock temporal - Descomentar cuando el backend esté listo
-    // try {
-    //   const response = await apiClient.post<{ token: string; user: User }>('/v1/auth/login', { email, password }, '');
-    //   if (response.token) {
-    //     localStorage.setItem('auth_token', response.token);
-    //     setState({ user: response.user, isLoading: false, isAuthenticated: true });
-    //   }
-    // } catch (error) {
-    //   throw error;
-    // }
-
-    // Mock login (simula delay de red)
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Validar que password no esté vacío
-    if (!password || password.length < 1) {
-      throw new Error('La contraseña es requerida');
-    }
-    
-    // Buscar si el usuario ya existe en localStorage
-    const existingUser = getMockUser();
-    if (existingUser && existingUser.email === email) {
-      // Verificar que la contraseña coincida
-      const storedPassword = localStorage.getItem(MOCK_PASSWORD_KEY);
-      if (storedPassword && storedPassword !== password) {
-        throw new Error('Contraseña incorrecta');
+    try {
+      const response = await apiClient.post<{ token: string; user: User }>('/v1/auth/login', { email, password }, '');
+      if (response.token) {
+        localStorage.setItem('auth_token', response.token);
+        setState({ user: response.user, isLoading: false, isAuthenticated: true });
       }
-      setState({ user: existingUser, isLoading: false, isAuthenticated: true });
-    } else {
-      throw new Error('Usuario no encontrado. Por favor regístrate primero.');
+    } catch (error) {
+      throw error;
     }
   };
 
   const registerWithEmail = async (name: string, email: string, password: string) => {
-    // ## Mock temporal - Descomentar cuando el backend esté listo
-    // try {
-    //   const response = await apiClient.post<{ token: string; user: User }>('/v1/auth/register', { name, email, password }, '');
-    //   if (response.token) {
-    //     localStorage.setItem('auth_token', response.token);
-    //     setState({ user: response.user, isLoading: false, isAuthenticated: true });
-    //   }
-    // } catch (error) {
-    //   throw error;
-    // }
-
-    // Mock register (simula delay de red)
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Validar password
-    if (!password || password.length < 8) {
-      throw new Error('La contraseña debe tener al menos 8 caracteres');
+    try {
+      const response = await apiClient.post<{ token: string; user: User }>('/v1/auth/register', { name, email, password }, '');
+      if (response.token) {
+        localStorage.setItem('auth_token', response.token);
+        setState({ user: response.user, isLoading: false, isAuthenticated: true });
+      }
+    } catch (error) {
+      throw error;
     }
-    
-    // Crear nuevo usuario con los datos proporcionados
-    const newUser = createMockUser(name, email);
-    saveMockUser(newUser);
-    // Guardar password para login posterior
-    localStorage.setItem(MOCK_PASSWORD_KEY, password);
-    setState({ user: newUser, isLoading: false, isAuthenticated: true });
   };
 
   const logout = async () => {
-    // ## Descomentar cuando el backend esté listo
-    // try {
-    //   const token = localStorage.getItem('auth_token');
-    //   await apiClient.post('/v1/auth/logout', {}, token || '');
-    // } catch (error) {
-    //   console.error('Logout failed:', error);
-    // }
+    try {
+      const token = localStorage.getItem('auth_token');
+      await apiClient.post('/v1/auth/logout', {}, token || '');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
     
-    clearMockAuth();
-    localStorage.removeItem(MOCK_PASSWORD_KEY);
+    localStorage.removeItem('auth_token');
     setState({ user: null, isLoading: false, isAuthenticated: false });
   };
 

@@ -23,7 +23,6 @@ export function saveMockUser(user: User, token: string = mockToken) {
   if (typeof window !== 'undefined') {
     localStorage.setItem('auth_token', token);
     localStorage.setItem('mock_user', JSON.stringify(user));
-    console.log('🔐 Usuario guardado:', user.name);
   }
 }
 
@@ -34,8 +33,7 @@ export function getMockUser(): User | null {
     if (userStr) {
       try {
         return JSON.parse(userStr);
-      } catch (e) {
-        console.error('Error al parsear usuario:', e);
+      } catch {
         return null;
       }
     }
@@ -48,7 +46,6 @@ export function clearMockAuth() {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('mock_user');
-    console.log('🔓 Sesión cerrada');
   }
 }
 
@@ -70,7 +67,6 @@ export function initializeMockAuth() {
       // Crear usuario demo para desarrollo
       const demoUser = createMockUser('Usuario Demo', 'demo@streamflow.local');
       saveMockUser(demoUser);
-      console.log('🔓 Mock auth inicializado con usuario demo');
     }
   }
 }
