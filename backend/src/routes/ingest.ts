@@ -6,19 +6,11 @@ import { uploadBuffer, BUCKETS } from '../services/minio.ts';
 const ingest = new Hono();
 
 async function processVideo(videoId: string, rawKey: string, title: string) {
-  try {
-    await sql`
-      UPDATE videos 
-      SET is_processed = true, is_published = true, hls_path = ${`/hls/${videoId}/playlist.m3u8`}
-      WHERE id = ${videoId}
-    `;
-    console.log(`Video ${title} (${videoId}) processed successfully`);
-  } catch (error) {
-    console.error(`Failed to process video ${videoId}:`, error);
-    await sql`
-      UPDATE videos SET is_processed = false WHERE id = ${videoId}
-    `;
-  }
+  // IMPORTANT: This placeholder function is deprecated.
+  // Real video processing is handled by src/workers/video-processor.ts
+  // This function exists only to mark videos for worker processing.
+  // The worker polls the database for is_processed=false videos.
+  console.log(`📋 Video ${videoId} queued for worker processing: ${title}`);
 }
 
 ingest.post('/', authMiddleware, requireAdmin, async (c) => {

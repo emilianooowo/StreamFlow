@@ -1,9 +1,11 @@
 import { Hono } from 'hono';
 import { sign, verify } from 'npm:jsonwebtoken@^9.0.2';
 import { OAuth2Client } from 'npm:google-auth-library@^10.1.0';
+import bcrypt from 'npm:bcryptjs@^2.4.3';
 import { env } from '../utils/env.ts';
 import { sql, type User } from '../db/database.ts';
 import { authMiddleware, type AuthPayload } from '../middleware/auth.ts';
+import { setCache, getCache } from '../services/redis.ts';
 
 const auth = new Hono();
 
@@ -96,7 +98,7 @@ auth.post('/login', async (c) => {
     }
 
     const existingUsers = await sql`
-      SELECT id, google_id, email, name, avatar_url, role, created_at 
+      SELECT id, google_id, email, name, avatar_url, role, password_hash 
       FROM users 
       WHERE email = ${email}
     `;
@@ -105,7 +107,18 @@ auth.post('/login', async (c) => {
       return c.json({ error: 'Invalid credentials' }, 401);
     }
 
-    const user = existingUsers[0] as User;
+    const user = existingUsers[0] as User & { password_hash?: string };
+
+    // Verify password hash exists and matches
+    if (!user.password_hash) {
+      return c.json({ error: 'Invalid credentials' }, 401);
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
+      return c.json({ error: 'Invalid credentials' }, 401);
+    }
+
     const jwt = generateJWT(user);
 
     return c.json({ 
@@ -132,6 +145,10 @@ auth.post('/register', async (c) => {
       return c.json({ error: 'Name, email and password required' }, 400);
     }
 
+    if (password.length < 6) {
+      return c.json({ error: 'Password must be at least 6 characters' }, 400);
+    }
+
     const existingUsers = await sql`
       SELECT id FROM users WHERE email = ${email}
     `;
@@ -140,9 +157,12 @@ auth.post('/register', async (c) => {
       return c.json({ error: 'Email already registered' }, 409);
     }
 
+    // Hash the password
+    const passwordHash = await bcrypt.hash(password, 10);
+
     const newUsers = await sql`
-      INSERT INTO users (google_id, email, name, role)
-      VALUES (${`local_${Date.now()}`}, ${email}, ${name}, 'viewer')
+      INSERT INTO users (google_id, email, name, password_hash, role)
+      VALUES (${`local_${Date.now()}`}, ${email}, ${name}, ${passwordHash}, 'viewer')
       RETURNING id, google_id, email, name, avatar_url, role, created_at
     `;
 
@@ -165,8 +185,22 @@ auth.post('/register', async (c) => {
   }
 });
 
-auth.post('/logout', (c) => {
-  return c.json({ message: 'Logged out successfully' });
+auth.post('/logout', authMiddleware, async (c) => {
+  try {
+    const user = c.get('user') as User;
+    const token = c.req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (token) {
+      // Blacklist the token until it expires (max 7 days = 604800 seconds)
+      const ttl = 604800;
+      await setCache(`blacklist:${token}`, user.id, ttl);
+    }
+    
+    return c.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    return c.json({ error: 'Logout failed' }, 500);
+  }
 });
 
 auth.get('/me', authMiddleware, (c) => {
