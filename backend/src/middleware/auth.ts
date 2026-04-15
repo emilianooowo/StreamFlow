@@ -2,6 +2,7 @@ import type { Context, Next } from 'hono';
 import { verify } from 'npm:jsonwebtoken@^9.0.2';
 import { env } from '../utils/env.ts';
 import { sql, type User } from '../db/database.ts';
+import { getCache } from '../services/redis.ts';
 
 export interface AuthPayload {
   sub: string;
@@ -22,6 +23,12 @@ export async function authMiddleware(c: Context, next: Next) {
   }
 
   try {
+    // Check if token is blacklisted
+    const isBlacklisted = await getCache(`blacklist:${token}`);
+    if (isBlacklisted) {
+      return c.json({ error: 'Unauthorized', message: 'Token has been revoked' }, 401);
+    }
+
     const decoded = verify(token, env.JWT_SECRET) as AuthPayload;
     
     const users = await sql`

@@ -24,9 +24,9 @@ export function VideoCard({ video }: VideoCardProps) {
     }
   }, [isHovered]);
 
-  const posterUrl = video.poster_path 
+  const posterUrl = video.poster_path && !thumbnailError
     ? getMinioUrl(video.poster_path) 
-    : 'https://via.placeholder.com/640x360/121212/666666?text=No+Preview';
+    : 'https://via.placeholder.com/640x360/1a1a2e/4a4a6a?text=Video+Loading';
 
   return (
     <Link href={`/dashboard/watch/${video.id}`}>
@@ -36,7 +36,7 @@ export function VideoCard({ video }: VideoCardProps) {
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="relative aspect-video overflow-hidden rounded-t-xl">
-          {!thumbnailError ? (
+          {!thumbnailError && video.poster_path ? (
             <>
               <img
                 src={posterUrl}
@@ -47,7 +47,7 @@ export function VideoCard({ video }: VideoCardProps) {
                 )}
                 onError={() => setThumbnailError(true)}
               />
-              {isHovered && (
+              {isHovered && video.hls_path && (
                 <video
                   ref={videoRef}
                   src={video.hls_path.replace('.m3u8', '-preview.mp4')}
@@ -59,8 +59,15 @@ export function VideoCard({ video }: VideoCardProps) {
               )}
             </>
           ) : (
-            <div className="w-full h-full bg-surface flex items-center justify-center">
-              <span className="text-text-secondary text-sm">Vista previa no disponible</span>
+            <div className="w-full h-full bg-gradient-to-br from-surface to-primary/20 flex items-center justify-center">
+              {!video.is_processed ? (
+                <div className="text-center">
+                  <div className="animate-pulse text-secondary text-lg mb-1">🎬 Procesando...</div>
+                  <p className="text-text-secondary text-xs">El video se mostrará cuando esté listo</p>
+                </div>
+              ) : (
+                <span className="text-text-secondary text-sm">🎥 {video.title}</span>
+              )}
             </div>
           )}
 
