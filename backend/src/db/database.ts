@@ -239,7 +239,7 @@ export async function initDatabase() {
 
   for (const idx of indexes) {
     try {
-      await sql`${idx.sql}`;
+      await sql.unsafe(idx.sql);
     } catch (e) {
       console.warn(`Índice ${idx.name} ya existe o error:`, e);
     }
